@@ -36,4 +36,14 @@ const urlSchema = new mongoose.Schema({
 
 const Url = mongoose.model("Url", urlSchema);
 
+// Set-up POST request with body-parser //
+const bodyParser = require('body-parser');
+let responseObject = {};
 
+app.post("/api/shorturl/new", bodyParser.urlencoded({ extended: false }), 
+  (req, res) => {
+    let inputUrl = req.body["url"];
+    responseObject["original_url"] = inputUrl;
+
+    res.json(responseObject);
+});
