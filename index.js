@@ -26,5 +26,14 @@ app.listen(port, function() {
 
 
 // Database Connection //
-let uri = process.env.MONGO_URI
+const uri = process.env.MONGO_URI
 mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true});
+
+const urlSchema = new mongoose.Schema({
+  original : {type: String, require: true},
+  short : Number
+});
+
+const Url = mongoose.model("Url", urlSchema);
+
+
