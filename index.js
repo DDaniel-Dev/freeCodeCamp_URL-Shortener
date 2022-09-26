@@ -34,12 +34,12 @@ const uri = process.env.MONGO_URI
 mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true});
 
 const urlSchema = new mongoose.Schema({
-  original_url : String
+  url : String
 });
 
 const Url = mongoose.model("URL", urlSchema);
 
-// Set-up POST request with body-parser //
+// -- Set-up POST request for /api/shorturl -- //
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -50,7 +50,7 @@ app.post("/api/shorturl", async function(req, res) {
   const something = dns.lookup(urlparser.parse(bodyURL).hostname, 
   (err, address) => {
     if (!address) {
-      res.json({ error: "invalid url" })
+      res.json({ error: "Invalid URL" })
     } else {
       const url = new Url({ url: bodyURL })
       url.save((err, data) => {
@@ -64,4 +64,16 @@ app.post("/api/shorturl", async function(req, res) {
     console.log("address", address);
   })
   console.log("something", something);
+});
+
+// -- Set-up GET request for /api/shorturl/:id -- //
+app.get("/api/shorturl/:id", (req, res) => {
+  const id = req.params.id;
+  Url.findById(id, (err, data) => {
+    if (!data) {
+      res.json({ error: "Invalid URL" })
+    } else {
+      res.redirect(data.url)
+    }
+  });
 });
