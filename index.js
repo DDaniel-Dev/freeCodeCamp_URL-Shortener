@@ -1,8 +1,12 @@
+// -- http://localhost:3000/ -- //
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const mongoose = require('mongoose');
+const dns = require('dns');
+const urlparser = require('url');
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
@@ -30,20 +34,34 @@ const uri = process.env.MONGO_URI
 mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true});
 
 const urlSchema = new mongoose.Schema({
-  original : {type: String, require: true},
-  short : Number
+  original_url : String
 });
 
-const Url = mongoose.model("Url", urlSchema);
+const Url = mongoose.model("URL", urlSchema);
 
 // Set-up POST request with body-parser //
 const bodyParser = require('body-parser');
-let responseObject = {};
+app.use(bodyParser.urlencoded({ extended: false }));
 
-app.post("/api/shorturl/new", bodyParser.urlencoded({ extended: false }), 
-  (req, res) => {
-    let inputUrl = req.body["url"];
-    responseObject["original_url"] = inputUrl;
-
-    res.json(responseObject);
+app.post("/api/shorturl", async function(req, res) {
+  console.log(req.body);
+  const bodyURL = req.body.url;
+  
+  const something = dns.lookup(urlparser.parse(bodyURL).hostname, 
+  (err, address) => {
+    if (!address) {
+      res.json({ error: "invalid url" })
+    } else {
+      const url = new Url({ url: bodyURL })
+      url.save((err, data) => {
+        res.json({
+          original_url: data.url,
+          short_url: data.id
+        })
+      })
+    };
+    console.log("dns", err);
+    console.log("address", address);
+  })
+  console.log("something", something);
 });
